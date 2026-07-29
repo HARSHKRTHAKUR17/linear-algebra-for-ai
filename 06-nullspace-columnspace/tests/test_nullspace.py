@@ -1,6 +1,6 @@
 import numpy as np
 
-from null_space import null_space
+from core.null_space import null_space
 
 
 def test_nullspace():

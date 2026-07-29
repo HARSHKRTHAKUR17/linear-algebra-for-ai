@@ -1,6 +1,6 @@
 import numpy as np
 
-from rref import rref
+from core.rref import rref
 
 
 def test_rref():

@@ -1,6 +1,6 @@
 import numpy as np
 
-from column_space import column_space
+from core.column_space import column_space
 
 
 def test_columnspace():
