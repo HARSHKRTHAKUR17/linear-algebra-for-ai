@@ -1,33 +1,70 @@
-from __future__ import annotations
-
-import numpy as np
-
-from .rref import rref
+from core.rref import rref
+from core.pivots import get_pivot_columns, get_free_columns
+from core.rank import rank
 
 
-def complete_solution(A: np.ndarray, b: np.ndarray, tol: float = 1e-10):
-    augmented = np.column_stack((A, b))
+class CompleteSolution:
+    def __init__(
+        self,
+        rref_matrix,
+        pivot_columns,
+        free_columns,
+        particular_solution,
+        general_solution,
+        has_solution,
+        unique_solution,
+    ):
+        self.rref = rref_matrix
+        self.pivot_columns = pivot_columns
+        self.free_columns = free_columns
+        self.particular_solution = particular_solution
+        self.general_solution = general_solution
+        self.has_solution = has_solution
+        self.unique_solution = unique_solution
 
-    R, pivots = rref(augmented)
 
-    rows, cols = A.shape
+def complete_solution(A, b):
+    augmented = [row + [rhs] for row, rhs in zip(A, b)]
+    r = rref(augmented)
 
-    pivot_columns = [c for c in pivots if c < cols]
+    pivot_cols = get_pivot_columns(r)
+    free_cols = get_free_columns(r)
 
-    free_columns = [c for c in range(cols) if c not in pivot_columns]
+    rows = len(A)
+    cols = len(A[0])
 
-    inconsistent = False
+    has_solution = True
 
-    for row in R:
-        if np.all(np.abs(row[:-1]) < tol) and abs(row[-1]) > tol:
-            inconsistent = True
+    for row in r:
+        if all(abs(x) < 1e-10 for x in row[:-1]) and abs(row[-1]) > 1e-10:
+            has_solution = False
             break
 
-    return {
-        "rref": R,
-        "pivot_columns": pivot_columns,
-        "free_columns": free_columns,
-        "has_solution": not inconsistent,
-        "unique_solution": len(free_columns) == 0 and not inconsistent,
-        "infinite_solutions": len(free_columns) > 0 and not inconsistent,
-    }
+    particular = [0] * cols
+
+    if has_solution:
+        for i, c in enumerate(pivot_cols):
+            if c < cols:
+                particular[c] = r[i][-1]
+
+    general = {}
+
+    for i, c in enumerate(pivot_cols):
+        if c < cols:
+            general[f"x{c+1}"] = {
+                "constant": r[i][-1],
+                "coefficients": {
+                    f"x{j+1}": -r[i][j]
+                    for j in free_cols
+                },
+            }
+
+    return CompleteSolution(
+        r,
+        pivot_cols,
+        free_cols,
+        particular,
+        general,
+        has_solution,
+        has_solution and len(free_cols) == 0,
+    )

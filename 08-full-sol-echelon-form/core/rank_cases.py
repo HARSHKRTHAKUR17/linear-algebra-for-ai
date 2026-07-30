@@ -1,23 +1,18 @@
-from __future__ import annotations
-
-import numpy as np
-
-from .rank import rank
+from core.rank import rank
 
 
-def rank_case(A: np.ndarray):
-
-    rows, cols = A.shape
+def classify_rank(A):
+    rows = len(A)
+    cols = len(A[0])
 
     r = rank(A)
 
-    if r == rows == cols:
-        return "Full Rank"
-
-    if r == rows and rows < cols:
-        return "Full Row Rank"
-
-    if r == cols and cols < rows:
-        return "Full Column Rank"
-
-    return "Rank Deficient"
+    return {
+        "rows": rows,
+        "cols": cols,
+        "rank": r,
+        "full_row_rank": r == rows,
+        "full_column_rank": r == cols,
+        "full_rank": r == min(rows, cols),
+        "rank_deficient": r < min(rows, cols),
+    }
