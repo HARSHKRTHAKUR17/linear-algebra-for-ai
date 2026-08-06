@@ -2,7 +2,9 @@ from core.independence import is_independent
 from core.span import spans_space
 
 
-def is_basis(vectors):
+from typing import List
+
+def is_basis(vectors: List[List[float]]) -> bool:
     """
     Checks whether the vectors form a basis.
     """
